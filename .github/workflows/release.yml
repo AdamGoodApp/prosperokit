@@ -125,10 +125,17 @@ jobs:
     needs: [npm, template-zip, pk-host]
     runs-on: ubuntu-24.04
     steps:
+      # Only this workflow's own files: docker/build-push-action also uploads a
+      # build record (*.dockerbuild) that download-artifact cannot extract.
       - uses: actions/download-artifact@v4
         with:
+          pattern: pk-host-*
           path: assets
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: template-zip
+          path: assets
       - uses: softprops/action-gh-release@v2
         with:
           files: assets/*
