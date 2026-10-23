@@ -128,6 +128,8 @@ export async function createApp(
       [
         'allowBuilds:',
         '  core-js: false',
+        '# ProsperoKit fixes install the day they are published. Remove this to',
+        "# keep pnpm's one-day hold on new releases for these packages too.",
         'minimumReleaseAgeExclude:',
         "  - '@prosperokit/*'",
         '',

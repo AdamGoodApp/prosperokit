@@ -202,3 +202,20 @@ console, the PS5 backend falls back to plain `http://` over a socket, and
 Collect the klogsrv output, `prosperokit doctor` output, the title id, the
 firmware version and whether `prosperokit dev`/`preview` on the desktop shows the
 same problem, then open an issue.
+
+## `pnpm up` stays on the previous release
+
+pnpm 12 does not install versions younger than one day (`minimumReleaseAge`).
+Projects made with `prosperokit create` exempt ProsperoKit's own packages in
+`pnpm-workspace.yaml`, so a fix installs the day it is published:
+
+```yaml
+minimumReleaseAgeExclude:
+  - "@prosperokit/*"
+```
+
+That hold is also a safety net against a compromised release, so the exemption
+is a trade-off: remove those lines to keep the one-day hold for ProsperoKit
+too. Older projects that list exact versions there (for example
+`'@prosperokit/cli@0.1.0-alpha.1'`) need the `'@prosperokit/*'` line to pick up
+new releases on the day they appear.
