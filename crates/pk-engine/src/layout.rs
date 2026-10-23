@@ -152,9 +152,14 @@ pub fn to_taffy(node: &Node) -> taffy::Style {
         width: dim(s.width),
         height: dim(s.height),
     };
+    // Unset minimums are 0, as in React Native (Yoga), not CSS's automatic
+    // "never below the content" minimum: with it, `flex-1` wrappers grow to
+    // their content and a list inside them can never scroll. Items only
+    // shrink when asked to (`flexShrink` defaults to 0 below), and an explicit
+    // `min-h-auto` / `minHeight: 'auto'` keeps the CSS behaviour.
     t.min_size = Size {
-        width: lpa(s.min_width),
-        height: lpa(s.min_height),
+        width: lpa_zero(s.min_width),
+        height: lpa_zero(s.min_height),
     };
     t.max_size = Size {
         width: lpa(s.max_width),

@@ -1273,3 +1273,51 @@ fn removing_an_absolute_subtree_from_the_overlay_keeps_layout_alive() {
     e.render(&mut f);
     assert_eq!(rect(&e, 20).w, 50.0);
 }
+
+/// The Gallery page as the app builds it: Screen (`flex-1`, 48 px vertical
+/// padding) → top bar (96 px) + content (`flex-1`) + legend row; content →
+/// FocusScope (`flex-1`) → FlatList scroll (`flex-1`) → content container →
+/// items far taller than the screen. `flex-1` is `flex: 1 1 0%`. The list must
+/// stay inside the screen and focus must scroll it.
+#[test]
+fn a_flex_1_list_inside_flex_1_wrappers_stays_on_screen_and_scrolls_to_focus() {
+    let flex1 = r#""flexGrow":1,"flexShrink":1,"flexBasis":"0%""#;
+    let mut ops = vec![
+        format!(r#"[1,2,"view",{{"style":{{{flex1},"paddingTop":48,"paddingBottom":48}}}}]"#),
+        r#"[1,3,"view",{"style":{"height":96}}]"#.to_string(),
+        format!(r#"[1,4,"view",{{"style":{{{flex1}}}}}]"#),
+        format!(r#"[1,5,"view",{{"style":{{{flex1}}}}}]"#),
+        format!(r#"[1,6,"scroll",{{"events":256,"style":{{{flex1}}}}}]"#),
+        r#"[1,7,"view",{"style":{"flexDirection":"column","flexShrink":0}}]"#.to_string(),
+        r#"[1,8,"view",{"style":{"height":40}}]"#.to_string(),
+    ];
+    for i in 0..20u32 {
+        ops.push(format!(
+            r#"[1,{},"view",{{"focusable":true,"style":{{"height":200,"flexShrink":0}}}}]"#,
+            10 + i
+        ));
+        ops.push(format!("[3,7,{}]", 10 + i));
+    }
+    ops.extend(
+        ["[3,6,7]", "[3,5,6]", "[3,4,5]", "[3,2,3]", "[3,2,4]", "[3,2,8]", "[3,0,2]"]
+            .map(String::from),
+    );
+    let mut e = engine();
+    commit(&mut e, &format!("[{}]", ops.join(",")));
+    tick(&mut e, 0.0);
+
+    // 1080 − 2×48 padding − 96 top bar − 40 legend = 848 px for the list.
+    assert_eq!(rect(&e, 6).h, 848.0, "the list is screen-sized, not content-sized");
+    assert_eq!(rect(&e, 8).y, 1080.0 - 48.0 - 40.0, "the legend stays on screen");
+
+    // Focusing the last item scrolls it into view.
+    assert!(e.set_focus(29));
+    for t in 1..=40 {
+        tick(&mut e, f64::from(t) * 16.0);
+    }
+    let (list, last) = (rect(&e, 6), rect(&e, 29));
+    assert!(
+        last.y >= list.y - 0.5 && last.y + last.h <= list.y + list.h + 0.5,
+        "last item at {last:?} is outside the list at {list:?}"
+    );
+}

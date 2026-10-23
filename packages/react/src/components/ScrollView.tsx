@@ -7,7 +7,17 @@ export function ScrollView({ children, contentContainerStyle, ref, ...props }: S
     'ScrollView',
     { ...props, ref },
     contentContainerStyle
-      ? createElement(View, { style: contentContainerStyle }, children)
+      ? createElement(
+          View,
+          {
+            // As in React Native, a horizontal scroll view lays its content out
+            // in a row; an explicit flexDirection in contentContainerStyle wins.
+            style: props.horizontal
+              ? [{ flexDirection: 'row' as const }, contentContainerStyle]
+              : contentContainerStyle,
+          },
+          children,
+        )
       : children,
   )
 }

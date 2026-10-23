@@ -95,6 +95,26 @@ describe('reconciler', () => {
     )
   })
 
+  it('lays out a horizontal ScrollView content container as a row', () => {
+    const r = renderNative(
+      <>
+        <ScrollView testID="h" horizontal contentContainerStyle={{ gap: 24 }}>
+          <View testID="h-item" />
+        </ScrollView>
+        <ScrollView testID="v" contentContainerStyle={{ gap: 24 }}>
+          <View testID="v-item" />
+        </ScrollView>
+        <ScrollView testID="o" horizontal contentContainerStyle={{ flexDirection: 'column' }}>
+          <View testID="o-item" />
+        </ScrollView>
+      </>,
+    )
+    const container = (id: string) => r.find(id)?.parent?.props.style
+    expect(container('h-item')).toEqual({ flexDirection: 'row', gap: 24 })
+    expect(container('v-item')).toEqual({ gap: 24 })
+    expect(container('o-item')).toEqual({ flexDirection: 'column' })
+  })
+
   it('computes the events bitmask', () => {
     const r = renderNative(
       <>
