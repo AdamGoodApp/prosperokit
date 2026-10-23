@@ -9,7 +9,6 @@ description = "ProsperoKit platform layer: PS5 FFI and desktop backends behind t
 
 [dependencies]
 pk-protocol = { workspace = true }
-thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 libc = { workspace = true }

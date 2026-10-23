@@ -535,7 +535,7 @@ impl Runtime {
         self.drain_js(host);
         // Still working (rendering, a server function in flight): not settled.
         if self.ui.handle.is_busy() || self.server.as_ref().is_some_and(|s| s.handle.is_busy()) {
-            host.js_activity();
+            host.js_waiting();
         }
         #[cfg(feature = "dev")]
         self.drain_dev(host, now);

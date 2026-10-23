@@ -141,8 +141,9 @@ pub struct HostFrameHost {
     simulated_ms: Option<f64>,
     events: Vec<HostEvent>,
     exit_requested: bool,
-    /// Set by `js_activity`, taken once per headless frame.
+    /// Set by `js_activity` / `js_waiting`, taken once per headless frame.
     js_active: bool,
+    js_waiting: bool,
 }
 
 impl HostFrameHost {
@@ -157,6 +158,7 @@ impl HostFrameHost {
             events: Vec::new(),
             exit_requested: false,
             js_active: false,
+            js_waiting: false,
         }
     }
 
@@ -176,6 +178,11 @@ impl HostFrameHost {
     /// Whether the runtime reported JS activity since the last call.
     pub(crate) fn take_js_activity(&mut self) -> bool {
         std::mem::take(&mut self.js_active)
+    }
+
+    /// Whether the runtime reported a busy JS runtime since the last call.
+    pub(crate) fn take_js_waiting(&mut self) -> bool {
+        std::mem::take(&mut self.js_waiting)
     }
 }
 
@@ -224,5 +231,9 @@ impl FrameHost for HostFrameHost {
 
     fn js_activity(&mut self) {
         self.js_active = true;
+    }
+
+    fn js_waiting(&mut self) {
+        self.js_waiting = true;
     }
 }

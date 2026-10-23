@@ -42,11 +42,14 @@ pub trait FrameHost {
     }
     /// Ask the platform to end the process after this frame.
     fn request_exit(&mut self);
-    /// JS is not idle this frame: the runtime handled a UI-thread message (a
-    /// commit, a native call, a server-function request) or a JS runtime is
-    /// still running or has messages queued. Headless runs wait for this to
-    /// go quiet before each scripted press; other platforms ignore it.
+    /// The runtime handled a UI-thread message this frame (a commit, a native
+    /// call, a server-function request). Headless runs wait for this to go
+    /// quiet before each scripted press; other platforms ignore it.
     fn js_activity(&mut self) {}
+    /// A JS runtime is busy right now: running, or awaiting a native or
+    /// server-function reply. Headless runs wait for it (up to the native call
+    /// timeout) instead of treating it like commit churn.
+    fn js_waiting(&mut self) {}
 }
 
 /// Shared, thread-safe services: usable from any thread (workers, JS threads).

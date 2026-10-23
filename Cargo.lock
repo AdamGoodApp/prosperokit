@@ -1834,7 +1834,6 @@ dependencies = [
  "rquickjs",
  "serde",
  "serde_json",
- "thiserror 2.0.21",
  "tungstenite",
 ]
 
@@ -1863,7 +1862,6 @@ dependencies = [
  "serde",
  "serde_json",
  "softbuffer",
- "thiserror 2.0.21",
  "ureq",
  "winit",
 ]

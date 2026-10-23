@@ -16,8 +16,13 @@ use crate::FrameHost;
 
 /// Real time without JS activity that counts as settled.
 const QUIET_MS: f64 = 50.0;
-/// Longest wait for a settle between presses (apps that commit every frame).
+/// Longest wait for a settle between presses while JS keeps committing but is
+/// otherwise idle (apps that commit every frame).
 const SETTLE_CAP_MS: f64 = 1_000.0;
+/// Longest wait while a JS runtime is busy (rendering, or awaiting a native
+/// or server-function reply): the native call timeout. A slow machine must
+/// not cut a save short.
+const WAIT_CAP_MS: f64 = 30_000.0;
 /// Longest wait for the app's first JS activity (an app that renders nothing).
 const START_CAP_MS: f64 = 10_000.0;
 /// Frames a button stays down.
@@ -48,6 +53,8 @@ pub(crate) struct Script {
     phase: Phase,
     /// Real time of the latest JS activity, `None` before the first one.
     last_activity_ms: Option<f64>,
+    /// Real time of the latest frame with a busy JS runtime.
+    last_waiting_ms: Option<f64>,
 }
 
 impl Script {
@@ -57,6 +64,7 @@ impl Script {
             next: 0,
             phase: Phase::Settling { since_ms: now_ms },
             last_activity_ms: None,
+            last_waiting_ms: None,
         }
     }
 
@@ -66,13 +74,17 @@ impl Script {
     }
 
     /// Buttons held during this frame. `activity`: the runtime handled JS work
-    /// during the previous frame; `now_ms`: real monotonic time.
-    pub(crate) fn step(&mut self, activity: bool, now_ms: f64) -> u32 {
-        if activity {
+    /// during the previous frame; `waiting`: a JS runtime is still busy right
+    /// now; `now_ms`: real monotonic time.
+    pub(crate) fn step(&mut self, activity: bool, waiting: bool, now_ms: f64) -> u32 {
+        if activity || waiting {
             self.last_activity_ms = Some(now_ms);
         }
+        if waiting {
+            self.last_waiting_ms = Some(now_ms);
+        }
         if let Phase::Settling { since_ms } = self.phase {
-            if !self.settled(since_ms, now_ms) {
+            if !self.settled(since_ms, waiting, now_ms) {
                 return 0;
             }
             self.phase = if self.next < self.inputs.len() {
@@ -112,16 +124,23 @@ impl Script {
         }
     }
 
-    fn settled(&self, since_ms: f64, now_ms: f64) -> bool {
-        match self.last_activity_ms {
+    fn settled(&self, since_ms: f64, waiting: bool, now_ms: f64) -> bool {
+        let Some(last) = self.last_activity_ms else {
             // Nothing rendered yet: wait for the app, but not forever.
-            None => now_ms - since_ms >= START_CAP_MS,
-            // Quiet is measured from the later of the last activity and the
-            // start of this wait, so a reaction still in flight is waited for.
-            Some(last) => {
-                now_ms - last.max(since_ms) >= QUIET_MS || now_ms - since_ms >= SETTLE_CAP_MS
-            }
+            return now_ms - since_ms >= START_CAP_MS;
+        };
+        // Quiet is measured from the later of the last activity and the start
+        // of this wait, so a reaction still in flight is waited for.
+        if now_ms - last.max(since_ms) >= QUIET_MS {
+            return true;
         }
+        if waiting {
+            return now_ms - since_ms >= WAIT_CAP_MS;
+        }
+        // Commit churn alone is capped, counted from when the runtime last
+        // stopped being busy so the result of a long wait still gets a frame.
+        let churn_since = self.last_waiting_ms.map_or(since_ms, |w| w.max(since_ms));
+        now_ms - churn_since >= SETTLE_CAP_MS
     }
 }
 
@@ -141,7 +160,9 @@ pub(super) fn run(
     let mut index: u64 = 0;
     while index < u64::from(opts.frames) || !script.finished() {
         let activity = host.take_js_activity();
-        host.pad.set_scripted(script.step(activity, real_ms()));
+        let waiting = host.take_js_waiting();
+        host.pad
+            .set_scripted(script.step(activity, waiting, real_ms()));
         host.simulated_ms = Some(index as f64 * 1000.0 / 60.0);
         frame(&mut host);
         if host.exit_requested() {
@@ -172,7 +193,7 @@ mod tests {
         (0..frames)
             .map(|_| {
                 let active = activity_at.contains(t);
-                let b = s.step(active, *t);
+                let b = s.step(active, false, *t);
                 *t += 1.0;
                 b
             })
@@ -227,6 +248,34 @@ mod tests {
         assert!(!silent.finished());
         run_frames(&mut silent, &mut t, 1, &[]);
         assert!(silent.finished());
+    }
+
+    #[test]
+    fn a_busy_runtime_is_waited_for_past_the_commit_cap_but_not_forever() {
+        // A save still awaiting its reply after 2.5 s (a slow machine): the
+        // press waits for it and lands 50 ms after the last busy frame (2499).
+        let mut s = Script::new(vec![CROSS], 0.0);
+        let mut t = 0.0;
+        let held: Vec<u32> = (0..2_600)
+            .map(|_| {
+                let b = s.step(t == 0.0, t < 2_500.0, t);
+                t += 1.0;
+                b
+            })
+            .collect();
+        assert_eq!(held.iter().position(|b| *b == CROSS), Some(2_549));
+
+        // A runtime that never stops being busy is given up on at 30 s.
+        let mut stuck = Script::new(vec![CROSS], 0.0);
+        let mut t = 0.0;
+        let held: Vec<u32> = (0..30_010)
+            .map(|_| {
+                let b = stuck.step(t == 0.0, true, t);
+                t += 1.0;
+                b
+            })
+            .collect();
+        assert_eq!(held.iter().position(|b| *b == CROSS), Some(30_000));
     }
 
     #[test]

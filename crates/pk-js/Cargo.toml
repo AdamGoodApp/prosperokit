@@ -21,7 +21,6 @@ crossbeam-channel = { workspace = true }
 parking_lot = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-thiserror = { workspace = true }
 tungstenite = { workspace = true, features = ["handshake"], optional = true }
 
 # rquickjs-sys ships pre-generated bindings for the desktop hosts; only the PS5

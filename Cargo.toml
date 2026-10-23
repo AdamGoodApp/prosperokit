@@ -48,7 +48,6 @@ parking_lot = "=0.13.0"
 libc = "=0.2.191"
 intel_tex_2 = "=0.5.0"
 ureq = { version = "=3.4.2", default-features = false, features = ["rustls", "platform-verifier", "gzip"] }
-thiserror = "2"
 clap = { version = "4", features = ["derive"] }
 
 [profile.release]

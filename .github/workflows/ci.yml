@@ -92,7 +92,7 @@ jobs:
           host="$GITHUB_WORKSPACE/target/release/pk-host"
           rm -rf dist/host-app/.data
           # Home → top bar → Settings → Volume → one step right (80 → 85).
-          "$host" --app dist/host-app --headless --frames 60 --input "up,right,right,cross,down,down,right"
+          "$host" --app dist/host-app --headless --frames 60 --input "up,right,right,cross,down,down,right" --screenshot settings.png
           cat dist/host-app/.data/settings.json
           grep -q '"volume": 85' dist/host-app/.data/settings.json
       - name: Server functions under dev (Node handler, native calls relayed to the host)
@@ -119,6 +119,7 @@ jobs:
           path: |
             templates/app/first.png
             templates/app/out.png
+            templates/app/settings.png
 
   docker:
     name: Builder image
