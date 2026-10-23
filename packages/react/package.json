@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/react",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "React renderer for the ProsperoKit native engine: primitives, reconciler host, startNative, react-dom shim",
   "license": "GPL-3.0-or-later",
   "repository": {

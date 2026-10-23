@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/vite",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Vite preset for ProsperoKit apps: TanStack Start environments, aliases, bundle checks",
   "license": "GPL-3.0-or-later",
   "repository": {

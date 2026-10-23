@@ -1,6 +1,6 @@
 {
   "name": "create-prosperokit",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Scaffold a ProsperoKit app (pnpm create prosperokit)",
   "license": "GPL-3.0-or-later",
   "repository": {

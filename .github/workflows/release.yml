@@ -40,10 +40,20 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
+      - name: Tag matches the package versions
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          for p in packages/*/package.json; do
+            v=$(node -p "require('./$p').version")
+            [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "::error::$p is $v, tag is $GITHUB_REF_NAME"; exit 1; }
+          done
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      # `prepack` of @prosperokit/cli copies crates/, kit/ and the template into the package.
-      - run: pnpm -r publish --access public --provenance --no-git-checks
+      # `prepack` of @prosperokit/cli copies crates/, docker/, kit/ and the template
+      # into the package. Versions already on npm are skipped, so re-runs are safe.
+      # `latest` also for prereleases: there is no stable line yet, and
+      # `pnpm create prosperokit` should get the newest build.
+      - run: pnpm -r publish --access public --provenance --tag latest --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -56,10 +66,11 @@ jobs:
         run: |
           cd templates
           zip -r ../prosperokit-template-app.zip app -x 'app/node_modules/*' 'app/.prosperokit/*' 'app/dist/*' 'app/native/*/target/*'
-      - uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+      - uses: actions/upload-artifact@v4
         with:
-          files: prosperokit-template-app.zip
+          name: template-zip
+          path: prosperokit-template-app.zip
+          if-no-files-found: error
 
   pk-host:
     name: pk-host (${{ matrix.name }})
@@ -69,7 +80,8 @@ jobs:
       matrix:
         include:
           - { name: macos-arm64, os: macos-14, target: aarch64-apple-darwin }
-          - { name: macos-x64, os: macos-13, target: x86_64-apple-darwin }
+          # Cross-compiled on Apple silicon (the Intel macOS runners are retired).
+          - { name: macos-x64, os: macos-14, target: x86_64-apple-darwin }
           - { name: linux-x64, os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
     steps:
       - uses: actions/checkout@v4
@@ -99,7 +111,26 @@ jobs:
           mkdir -p out
           cp target/${{ matrix.target }}/release/pk-host target/${{ matrix.target }}/release/pk-assets out/
           tar -C out -czf pk-host-${{ matrix.name }}.tar.gz pk-host pk-assets
-      - uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+      - uses: actions/upload-artifact@v4
         with:
-          files: pk-host-${{ matrix.name }}.tar.gz
+          name: pk-host-${{ matrix.name }}
+          path: pk-host-${{ matrix.name }}.tar.gz
+          if-no-files-found: error
+
+  # One job creates the GitHub release, after everything it attaches was built
+  # and the packages are on npm.
+  github-release:
+    name: GitHub release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [npm, template-zip, pk-host]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: assets/*
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true

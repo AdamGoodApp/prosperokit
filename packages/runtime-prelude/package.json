@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/runtime-prelude",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Web APIs for ProsperoKit's QuickJS runtimes (timers, fetch, streams, URL, AsyncLocalStorage)",
   "license": "GPL-3.0-or-later",
   "repository": {

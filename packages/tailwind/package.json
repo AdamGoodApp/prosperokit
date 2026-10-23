@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/tailwind",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Tailwind class compiler for the ProsperoKit engine (build-time style table + runtime resolver)",
   "license": "GPL-3.0-or-later",
   "repository": {
