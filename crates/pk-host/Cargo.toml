@@ -1,0 +1,23 @@
+[package]
+name = "pk-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit desktop host: runs an app in a window (or headless) on macOS/Linux"
+
+[[bin]]
+name = "pk-host"
+path = "src/main.rs"
+
+[features]
+default = []
+dev = ["pk-runtime/dev"]
+# The app's custom native modules (the CLI builds pk-host in an overlay workspace).
+user-modules = ["pk-runtime/user-modules"]
+
+[dependencies]
+pk-runtime = { workspace = true }
+pk-platform = { workspace = true }
+clap = { workspace = true }

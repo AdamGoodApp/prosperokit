@@ -1,0 +1,22 @@
+[package]
+name = "pk-engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit UI engine: tree, layout, text, raster, focus, animation"
+
+[dependencies]
+pk-protocol = { workspace = true }
+pk-platform = { workspace = true }
+taffy = { workspace = true }
+tiny-skia = { workspace = true }
+cosmic-text = { workspace = true }
+swash = { workspace = true }
+# `fontdb::Source` is part of `FontSystem::new_with_fonts`; cosmic-text does not re-export it.
+fontdb = { version = "=0.23.0", default-features = false }
+
+[dev-dependencies]
+png = { workspace = true }
+serde_json = { workspace = true }

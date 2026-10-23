@@ -1,0 +1,32 @@
+[package]
+name = "pk-platform"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit platform layer: PS5 FFI and desktop backends behind traits"
+
+[dependencies]
+pk-protocol = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+libc = { workspace = true }
+parking_lot = { workspace = true }
+crossbeam-channel = { workspace = true }
+
+[target.'cfg(not(target_vendor = "sie"))'.dependencies]
+winit = { workspace = true }
+softbuffer = { workspace = true }
+gilrs = { workspace = true }
+cpal = { workspace = true }
+ureq = { workspace = true }
+png = { workspace = true }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_vendor, values("sie"))'] }
+
+[lints.clippy]
+# The frozen `Platform`/`AudioOut` traits take boxed frame/render closures.
+type_complexity = "allow"

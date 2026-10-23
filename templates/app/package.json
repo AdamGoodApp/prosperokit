@@ -1,0 +1,52 @@
+{
+  "name": "prosperokit-template-app",
+  "version": "0.1.0",
+  "description": "ProsperoKit default app template: welcome, gallery, demos",
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "prosperokit dev",
+    "build": "tsc -b",
+    "build:host": "prosperokit build --target host",
+    "build:ps5": "prosperokit build --target ps5",
+    "deploy": "prosperokit deploy",
+    "preview": "prosperokit preview",
+    "test": "vitest run",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prosperokit/native": "workspace:*",
+    "@prosperokit/react": "workspace:*",
+    "@prosperokit/tailwind": "workspace:*",
+    "@prosperokit/ui": "workspace:*",
+    "@tanstack/react-form": "1.33.5",
+    "@tanstack/react-query": "5.104.5",
+    "@tanstack/react-router": "1.170.45",
+    "@tanstack/react-start": "1.169.3",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide": "1.61.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "tailwind-merge": "2.6.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.2",
+    "@prosperokit/cli": "workspace:*",
+    "@prosperokit/testing": "workspace:*",
+    "@prosperokit/vite": "workspace:*",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

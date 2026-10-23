@@ -1,0 +1,16 @@
+[package]
+name = "example-module"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "Example ProsperoKit custom native module: example.add({ a, b }) -> { sum }"
+
+# The ProsperoKit CLI symlinks `.prosperokit/rust` to the framework's Rust
+# workspace (the installed `@prosperokit/cli/rust` copy, or this monorepo), and
+# builds this crate through `.prosperokit/user-modules`.
+[dependencies]
+pk-js = { path = "../../.prosperokit/rust/crates/pk-js" }
+pk-protocol = { path = "../../.prosperokit/rust/crates/pk-protocol" }
+
+# Keep this crate its own workspace root so it never joins a surrounding Cargo workspace.
+[workspace]

@@ -1,0 +1,42 @@
+{
+  "name": "create-prosperokit",
+  "version": "0.1.0-alpha.0",
+  "description": "Scaffold a ProsperoKit app (pnpm create prosperokit)",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/create-prosperokit"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/create-prosperokit#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "bin": {
+    "create-prosperokit": "./dist/bin.js"
+  },
+  "dependencies": {
+    "@prosperokit/cli": "workspace:*"
+  }
+}

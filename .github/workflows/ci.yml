@@ -1,0 +1,179 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  BUILDER_IMAGE: ghcr.io/${{ github.repository_owner }}/prosperokit-ps5-builder
+
+jobs:
+  js:
+    name: JS (lint, typecheck, test, build)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  rust-host:
+    name: Rust host + headless smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Host jobs only: RUSTFLAGS would replace the PS5 target's rustflags.
+    env:
+      RUSTFLAGS: -D warnings
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-10-20
+          components: rust-src, clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux native libraries for winit/softbuffer/cpal/gilrs
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libasound2-dev libudev-dev libxkbcommon-dev libwayland-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev pkg-config
+      # pk-js embeds the runtime prelude bundles (include_str!), so JS builds first.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: cargo build -p pk-host -p pk-assets --release
+
+      # Headless smoke: the template builds for the host and the app reacts to input.
+      - name: Build the template for the host
+        working-directory: templates/app
+        env:
+          PK_HOST_BIN: ${{ github.workspace }}/target/release/pk-host
+          PK_ASSETS_BIN: ${{ github.workspace }}/target/release/pk-assets
+        run: pnpm exec prosperokit build --target host
+      - name: Run the app headless and compare screenshots
+        working-directory: templates/app
+        run: |
+          host="$GITHUB_WORKSPACE/target/release/pk-host"
+          # Both runs wait for the app to settle; "right" moves focus to the next card.
+          "$host" --app dist/host-app --headless --frames 1 --screenshot first.png
+          "$host" --app dist/host-app --headless --frames 1 --input "right" --screenshot out.png
+          test -s first.png && test -s out.png
+          if cmp -s first.png out.png; then
+            echo "::error::screenshot after input is identical to the first frame"
+            exit 1
+          fi
+      - name: Server functions run in-process (Settings saves to data://)
+        working-directory: templates/app
+        run: |
+          host="$GITHUB_WORKSPACE/target/release/pk-host"
+          rm -rf dist/host-app/.data
+          # Home → top bar → Settings → Volume → one step right (80 → 85).
+          "$host" --app dist/host-app --headless --frames 60 --input "up,right,right,cross,down,down,right"
+          cat dist/host-app/.data/settings.json
+          grep -q '"volume": 85' dist/host-app/.data/settings.json
+      - name: Server functions under dev (Node handler, native calls relayed to the host)
+        working-directory: templates/app
+        run: |
+          pnpm exec prosperokit dev --no-host --port 4311 > dev.log 2>&1 &
+          dev=$!
+          for _ in $(seq 1 900); do
+            grep -q 'connect a host:' dev.log && break
+            kill -0 "$dev" 2>/dev/null || { cat dev.log; exit 1; }
+            sleep 1
+          done
+          cmd=$(sed -n 's/.*connect a host: //p' dev.log)
+          test -n "$cmd" || { cat dev.log; exit 1; }
+          rm -rf .prosperokit/host-app/.data
+          $cmd --headless --frames 60 --input "up,right,right,cross,down,down,right"
+          cat dev.log
+          grep -q '"volume": 85' .prosperokit/host-app/.data/settings.json
+          kill "$dev"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.os }}
+          path: |
+            templates/app/first.png
+            templates/app/out.png
+
+  docker:
+    name: Builder image
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            docker:
+              - 'docker/**'
+      - uses: docker/setup-buildx-action@v3
+        if: steps.changes.outputs.docker == 'true'
+      - uses: docker/login-action@v3
+        if: steps.changes.outputs.docker == 'true' && github.ref == 'refs/heads/main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        if: steps.changes.outputs.docker == 'true'
+        with:
+          context: docker/ps5-builder
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.BUILDER_IMAGE }}:latest
+            ${{ env.BUILDER_IMAGE }}:v0.42-nightly-2026-10-20
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  ps5:
+    name: PS5 target (builder image)
+    runs-on: ubuntu-24.04
+    needs: docker
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/prosperokit-ps5-builder:latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ps5
+      # pk-js embeds the runtime prelude bundles (include_str!), so JS builds first.
+      - name: Install JS dependencies and build the packages
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Build the runtime static library for x86_64-sie-ps5
+        run: scripts/build-ps5.sh
+      - name: Build the template app for the PS5
+        working-directory: templates/app
+        run: pnpm exec prosperokit build --target ps5
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ps5-package
+          path: templates/app/dist/ps5/*.zip
+          if-no-files-found: error

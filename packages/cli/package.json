@@ -1,0 +1,64 @@
+{
+  "name": "@prosperokit/cli",
+  "version": "0.1.0-alpha.0",
+  "description": "ProsperoKit CLI: create, dev, build, deploy, add, assets, doctor",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "rust",
+    "docker",
+    "kit",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "sync-rust": "node scripts/sync-rust.mjs",
+    "prepack": "node scripts/sync-rust.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "catalog:",
+    "@prosperokit/ui": "workspace:*",
+    "basic-ftp": "catalog:",
+    "chokidar": "catalog:",
+    "commander": "catalog:",
+    "vite": "catalog:",
+    "ws": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/ws": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "bin": {
+    "prosperokit": "./dist/bin.js"
+  }
+}

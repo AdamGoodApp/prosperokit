@@ -1,0 +1,11 @@
+[package]
+name = "pk-user-modules"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Stub for an app's custom native modules; `prosperokit build` substitutes a generated crate of the same name (see packages/cli/src/user-modules.ts)"
+
+[dependencies]
+pk-js = { workspace = true }

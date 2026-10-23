@@ -1,0 +1,6 @@
+node_modules
+dist
+.prosperokit
+target
+*.tsbuildinfo
+.DS_Store

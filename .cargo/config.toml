@@ -1,0 +1,27 @@
+# PS5 target. The Rust code is built as a static library only; the final link
+# is done by the vendored kit (kit/tools/build.sh) with prospero-lld, so the
+# `linker` below is never used to produce a shippable binary.
+#
+# `-Z build-std=std,panic_abort` is passed on the command line by
+# scripts/build-ps5.sh (not here) so host builds keep using the prebuilt std.
+[target.x86_64-sie-ps5]
+linker = "clang-18"
+# NOTE: the `libc` crate is left on its default FreeBSD 12 ABI: Rust's std only
+# compiles against that layout (std/src/sys/fs/unix.rs expects a 64-bit
+# d_fileno). The console is FreeBSD 11-based, so `stat`/`dirent`-shaped std
+# APIs (std::fs::metadata, read_dir, read_to_string's size hint) must never be
+# used on the PS5; pk-platform's PS5 backend declares the FreeBSD 11 structs
+# itself and calls sceKernel* directly.
+rustflags = [
+  "-C", "target-cpu=znver2",
+  "-C", "relocation-model=pic",
+  "-C", "link-dead-code=no",
+]
+
+[env]
+# The `cc` crate (QuickJS C sources via rquickjs-sys) must use the PS5 clang
+# flags; these wrappers apply them and read PS5_PAYLOAD_SDK / PS5_CLANG.
+CC_x86_64-sie-ps5 = { value = "scripts/ps5-cc.sh", relative = true }
+CXX_x86_64-sie-ps5 = { value = "scripts/ps5-cxx.sh", relative = true }
+AR_x86_64-sie-ps5 = { value = "scripts/ps5-ar.sh", relative = true }
+CFLAGS_x86_64-sie-ps5 = "-O2 -ffunction-sections -fdata-sections"

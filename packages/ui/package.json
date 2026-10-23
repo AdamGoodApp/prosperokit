@@ -1,0 +1,78 @@
+{
+  "name": "@prosperokit/ui",
+  "version": "0.1.0-alpha.0",
+  "description": "ProsperoKit UI: PS5-styled, controller-native component registry, theme and layout",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/ui"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/ui#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./theme": {
+      "types": "./dist/src/theme.d.ts",
+      "import": "./dist/src/theme.js"
+    },
+    "./primitives": {
+      "types": "./dist/src/primitives/index.d.ts",
+      "import": "./dist/src/primitives/index.js"
+    },
+    "./gallery": {
+      "types": "./dist/src/gallery.d.ts",
+      "import": "./dist/src/gallery.js"
+    },
+    "./registry.json": "./registry.json",
+    "./tailwind.config.js": {
+      "types": "./tailwind.config.d.ts",
+      "default": "./tailwind.config.js"
+    },
+    "./assets/*": "./assets/*",
+    "./registry/*": "./registry/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "registry",
+    "registry.json",
+    "assets",
+    "tailwind.config.js",
+    "tailwind.config.d.ts",
+    "THEME.md"
+  ],
+  "scripts": {
+    "build": "node scripts/gen-registry.mjs && tsc -b && node scripts/rewrite-aliases.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@prosperokit/native": "workspace:*",
+    "@prosperokit/react": "workspace:*",
+    "@prosperokit/tailwind": "workspace:*",
+    "@tanstack/react-form": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "@tanstack/react-table": "catalog:",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide": "catalog:",
+    "react": "catalog:",
+    "tailwind-merge": "catalog:"
+  },
+  "devDependencies": {
+    "@prosperokit/testing": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

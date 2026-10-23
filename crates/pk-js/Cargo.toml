@@ -1,0 +1,36 @@
+[package]
+name = "pk-js"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit JavaScript runtimes (QuickJS-NG), host bridge, native module registry, dev agent"
+
+[features]
+default = []
+dev = ["dep:tungstenite"]
+# Mock platform services for tests of dependent crates.
+testing = []
+
+[dependencies]
+pk-protocol = { workspace = true }
+pk-platform = { workspace = true }
+rquickjs = { workspace = true }
+crossbeam-channel = { workspace = true }
+parking_lot = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tungstenite = { workspace = true, features = ["handshake"], optional = true }
+
+# rquickjs-sys ships pre-generated bindings for the desktop hosts; only the PS5
+# target generates them (needs libclang, present in the builder image).
+[target.'cfg(target_vendor = "sie")'.dependencies]
+rquickjs = { workspace = true, features = ["bindgen"] }
+
+[dev-dependencies]
+tungstenite = { workspace = true, features = ["handshake"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_vendor, values("sie"))'] }

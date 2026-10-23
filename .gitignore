@@ -1,0 +1,21 @@
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+.prosperokit/
+.data/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+# kit caches (the kit is driven from <app>/.prosperokit/kit-work, never built in place)
+kit/.deps/
+kit/build/
+kit/dist/
+kit/.local/
+kit/runtime/libc.prx
+# test artifacts
+crates/**/tests/golden/*.actual.png
+coverage/
+target-docker/

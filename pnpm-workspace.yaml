@@ -1,0 +1,64 @@
+packages:
+  - packages/*
+  - templates/*
+
+# Dependency build scripts must be decided (pnpm's strictDepBuilds). core-js's
+# postinstall only prints a funding banner.
+allowBuilds:
+  core-js: false
+
+# Every version ProsperoKit depends on is pinned here once; packages refer to
+# them with "catalog:" so the whole repo moves together.
+catalog:
+  "@biomejs/biome": 2.6.2
+  "@hono/node-server": 2.1.5
+  "@tailwindcss/node": 4.3.3
+  "@tanstack/react-form": 1.33.5
+  "@tanstack/react-query": 5.104.5
+  "@tanstack/react-router": 1.170.45
+  "@tanstack/react-start": 1.169.3
+  "@tanstack/react-store": 0.11.2
+  "@tanstack/react-table": 9.3.1
+  "@tanstack/react-virtual": 3.14.21
+  "@types/node": 26.6.5
+  "@types/react": 19.3.0
+  "@types/react-reconciler": 0.34.1
+  "@types/ws": 8.18.2
+  "@vitejs/plugin-react": 6.1.2
+  abortcontroller-polyfill: 1.7.8
+  basic-ftp: 6.2.3
+  chokidar: 6.0.0
+  class-variance-authority: 0.7.1
+  clsx: 2.1.1
+  commander: 15.0.0
+  core-js: 3.51.0
+  event-target-shim: 6.0.2
+  lucide: 1.61.0
+  react: 19.3.1
+  react-dom: 19.3.1
+  react-reconciler: 0.34.0
+  tailwind-merge: 2.6.0
+  tailwindcss: 3.4.19
+  twrnc: 4.16.0
+  typescript: 7.0.2
+  vite: 8.3.5
+  vitest: 5.0.5
+  web-streams-polyfill: 4.3.0
+  ws: 8.22.0
+  zod: 4.6.7
+
+minimumReleaseAgeExclude:
+  - "@biomejs/biome@2.6.2"
+  - "@biomejs/cli-android-arm64@2.6.2"
+  - "@biomejs/cli-android-x64@2.6.2"
+  - "@biomejs/cli-darwin-arm64@2.6.2"
+  - "@biomejs/cli-darwin-x64@2.6.2"
+  - "@biomejs/cli-linux-arm64-musl@2.6.2"
+  - "@biomejs/cli-linux-arm64@2.6.2"
+  - "@biomejs/cli-linux-x64-musl@2.6.2"
+  - "@biomejs/cli-linux-x64@2.6.2"
+  - "@biomejs/cli-win32-arm64@2.6.2"
+  - "@biomejs/cli-win32-x64@2.6.2"
+  - vite@8.3.5
+  - "@types/react-reconciler@0.34.1"
+  - lucide@1.61.0

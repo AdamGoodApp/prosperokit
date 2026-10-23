@@ -1,0 +1,7 @@
+[toolchain]
+# Nightly is required for `-Z build-std` (the PS5 target is a custom target
+# JSON, so std is compiled from source). Pinned so every machine and CI
+# produce the same code.
+channel = "nightly-2026-10-20"
+components = ["rust-src", "clippy", "rustfmt"]
+profile = "minimal"

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2023"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": ".prosperokit/tsc"
+  },
+  "include": ["src", "prosperokit.config.ts", "vite.config.ts", "vitest.config.ts"]
+}

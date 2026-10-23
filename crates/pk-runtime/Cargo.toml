@@ -1,0 +1,35 @@
+[package]
+name = "pk-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit runtime: wires platform, engine, JS runtimes and modules; PS5 entry point"
+
+[lib]
+name = "prosperokit_runtime"
+crate-type = ["staticlib", "rlib"]
+
+[features]
+default = []
+dev = ["pk-js/dev"]
+# Calls pk_user_modules::register_all(&mut registry) (lib.rs, cfg(feature = "user-modules")).
+# The CLI swaps the stub crate for the app's generated one via an overlay workspace.
+user-modules = ["dep:pk-user-modules"]
+
+[dependencies]
+pk-protocol = { workspace = true }
+pk-platform = { workspace = true }
+pk-engine = { workspace = true }
+pk-js = { workspace = true }
+pk-modules = { workspace = true }
+pk-user-modules = { workspace = true, optional = true }
+crossbeam-channel = { workspace = true }
+parking_lot = { workspace = true }
+serde_json = { workspace = true }
+image = { workspace = true }
+png = { workspace = true }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_vendor, values("sie"))'] }

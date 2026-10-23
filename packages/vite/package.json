@@ -1,0 +1,53 @@
+{
+  "name": "@prosperokit/vite",
+  "version": "0.1.0-alpha.0",
+  "description": "Vite preset for ProsperoKit apps: TanStack Start environments, aliases, bundle checks",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/vite"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/vite#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "client.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vite": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "@types/react": "catalog:"
+  },
+  "dependencies": {
+    "@prosperokit/tailwind": "workspace:*",
+    "@tanstack/react-start": "catalog:",
+    "@vitejs/plugin-react": "catalog:"
+  },
+  "peerDependencies": {
+    "vite": "catalog:"
+  }
+}

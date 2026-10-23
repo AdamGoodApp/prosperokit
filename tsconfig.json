@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/runtime-prelude" },
+    { "path": "packages/native" },
+    { "path": "packages/react" },
+    { "path": "packages/tailwind" },
+    { "path": "packages/vite" },
+    { "path": "packages/testing" },
+    { "path": "packages/ui" },
+    { "path": "packages/cli" },
+    { "path": "packages/create-prosperokit" },
+    { "path": "templates/app" }
+  ]
+}

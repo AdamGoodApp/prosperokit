@@ -1,0 +1,65 @@
+{
+  "name": "@prosperokit/react",
+  "version": "0.1.0-alpha.0",
+  "description": "React renderer for the ProsperoKit native engine: primitives, reconciler host, startNative, react-dom shim",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/react#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dom-shim": {
+      "types": "./dist/dom-shim/index.d.ts",
+      "import": "./dist/dom-shim/index.js"
+    },
+    "./dom-shim/client": {
+      "types": "./dist/dom-shim/client.d.ts",
+      "import": "./dist/dom-shim/client.js"
+    },
+    "./host": {
+      "types": "./dist/host.d.ts",
+      "import": "./dist/host.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "import": "./dist/protocol.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react-reconciler": "catalog:"
+  },
+  "peerDependencies": {
+    "@tanstack/react-router": "catalog:",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@tanstack/react-router": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-reconciler": "catalog:",
+    "lucide": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

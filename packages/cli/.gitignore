@@ -1,0 +1,5 @@
+# produced by scripts/sync-rust.mjs at pack time
+/rust/
+/kit/
+/templates/
+/docker/

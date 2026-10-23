@@ -1,0 +1,105 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  builder-image:
+    name: Publish the PS5 builder image
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: docker/ps5-builder
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/prosperokit-ps5-builder:latest
+            ghcr.io/${{ github.repository_owner }}/prosperokit-ps5-builder:v0.42-nightly-2026-10-20
+
+  npm:
+    name: Publish npm packages
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # `prepack` of @prosperokit/cli copies crates/, kit/ and the template into the package.
+      - run: pnpm -r publish --access public --provenance --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  template-zip:
+    name: Template ZIP
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip templates/app
+        run: |
+          cd templates
+          zip -r ../prosperokit-template-app.zip app -x 'app/node_modules/*' 'app/.prosperokit/*' 'app/dist/*' 'app/native/*/target/*'
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: prosperokit-template-app.zip
+
+  pk-host:
+    name: pk-host (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macos-arm64, os: macos-14, target: aarch64-apple-darwin }
+          - { name: macos-x64, os: macos-13, target: x86_64-apple-darwin }
+          - { name: linux-x64, os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-10-20
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - name: Linux native libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libasound2-dev libudev-dev libxkbcommon-dev libwayland-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev pkg-config
+      # pk-js embeds the runtime prelude bundles (include_str!).
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @prosperokit/runtime-prelude build
+      - run: cargo build -p pk-host -p pk-assets --release --target ${{ matrix.target }}
+      - name: Package
+        run: |
+          mkdir -p out
+          cp target/${{ matrix.target }}/release/pk-host target/${{ matrix.target }}/release/pk-assets out/
+          tar -C out -czf pk-host-${{ matrix.name }}.tar.gz pk-host pk-assets
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: pk-host-${{ matrix.name }}.tar.gz

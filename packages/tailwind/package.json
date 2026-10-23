@@ -1,0 +1,49 @@
+{
+  "name": "@prosperokit/tailwind",
+  "version": "0.1.0-alpha.0",
+  "description": "Tailwind class compiler for the ProsperoKit engine (build-time style table + runtime resolver)",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/tailwind"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/tailwind#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./theme": {
+      "types": "./dist/theme.d.ts",
+      "import": "./dist/theme.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "tailwindcss": "catalog:",
+    "twrnc": "catalog:"
+  },
+  "sideEffects": false
+}

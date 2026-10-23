@@ -1,0 +1,11 @@
+[package]
+name = "pk-protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit shared contracts: mutation ops, props, styles, events, values"
+
+[dependencies]
+serde_json = { workspace = true }

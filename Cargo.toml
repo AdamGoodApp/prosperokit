@@ -1,0 +1,68 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/pk-protocol",
+  "crates/pk-platform",
+  "crates/pk-engine",
+  "crates/pk-js",
+  "crates/pk-modules",
+  "crates/pk-runtime",
+  "crates/pk-host",
+  "crates/pk-assets",
+  "crates/pk-user-modules",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/AdamGoodApp/prosperokit"
+rust-version = "1.99"
+
+[workspace.dependencies]
+pk-protocol = { path = "crates/pk-protocol" }
+pk-platform = { path = "crates/pk-platform" }
+pk-engine = { path = "crates/pk-engine" }
+pk-js = { path = "crates/pk-js" }
+pk-modules = { path = "crates/pk-modules" }
+pk-runtime = { path = "crates/pk-runtime" }
+pk-user-modules = { path = "crates/pk-user-modules" }
+
+# Pinned exactly (see the plan's version table).
+rquickjs = { version = "=0.14.0", features = ["loader", "array-buffer", "classes", "properties", "macro"] }
+taffy = "=0.15.0"
+tiny-skia = { version = "=0.12.0", default-features = false, features = ["std", "simd", "png-format"] }
+cosmic-text = { version = "=0.19.0", default-features = false, features = ["std", "swash"] }
+swash = "=0.2.10"
+winit = { version = "=0.30.13", default-features = false, features = ["rwh_06", "x11", "wayland"] }
+softbuffer = { version = "=0.4.8", default-features = false, features = ["x11", "wayland"] }
+gilrs = "=0.11.2"
+cpal = "=0.18.2"
+image = { version = "=0.25.10", default-features = false, features = ["png", "jpeg"] }
+png = "=0.18.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tungstenite = { version = "=0.30.0", default-features = false }
+crossbeam-channel = "=0.5.17"
+parking_lot = "=0.13.0"
+libc = "=0.2.191"
+intel_tex_2 = "=0.5.0"
+ureq = { version = "=3.4.2", default-features = false, features = ["rustls", "platform-verifier", "gzip"] }
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+debug = false
+strip = "debuginfo"
+
+[profile.dev]
+panic = "abort"
+opt-level = 1
+
+# tiny-skia / cosmic-text / image are far too slow unoptimised for a 1080p UI.
+[profile.dev.package."*"]
+opt-level = 2

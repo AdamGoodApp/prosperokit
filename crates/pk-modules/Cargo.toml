@@ -1,0 +1,18 @@
+[package]
+name = "pk-modules"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ProsperoKit built-in native modules: app, notify, ime, audio, pad, fs, system, http"
+
+[dependencies]
+pk-protocol = { workspace = true }
+pk-platform = { workspace = true }
+pk-js = { workspace = true }
+parking_lot = { workspace = true }
+crossbeam-channel = { workspace = true }
+
+[dev-dependencies]
+pk-js = { workspace = true, features = ["testing"] }

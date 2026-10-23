@@ -1,0 +1,544 @@
+[
+  {
+    "name": "accordion",
+    "files": [
+      "registry/accordion.tsx"
+    ],
+    "registryDependencies": [
+      "collapsible"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "alert",
+    "files": [
+      "registry/alert.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "alert-dialog",
+    "files": [
+      "registry/alert-dialog.tsx"
+    ],
+    "registryDependencies": [
+      "button",
+      "dialog"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "aspect-ratio",
+    "files": [
+      "registry/aspect-ratio.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "avatar",
+    "files": [
+      "registry/avatar.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "badge",
+    "files": [
+      "registry/badge.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "breadcrumb",
+    "files": [
+      "registry/breadcrumb.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "button",
+    "files": [
+      "registry/button.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "button-group",
+    "files": [
+      "registry/button-group.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "calendar",
+    "files": [
+      "registry/calendar.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "card",
+    "files": [
+      "registry/card.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "carousel",
+    "files": [
+      "registry/carousel.tsx"
+    ],
+    "registryDependencies": [
+      "button"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "checkbox",
+    "files": [
+      "registry/checkbox.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "collapsible",
+    "files": [
+      "registry/collapsible.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "combobox",
+    "files": [
+      "registry/combobox.tsx"
+    ],
+    "registryDependencies": [
+      "dropdown-menu",
+      "select"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "command",
+    "files": [
+      "registry/command.tsx"
+    ],
+    "registryDependencies": [
+      "dropdown-menu",
+      "select"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "date-picker",
+    "files": [
+      "registry/date-picker.tsx"
+    ],
+    "registryDependencies": [
+      "calendar",
+      "dialog"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "dialog",
+    "files": [
+      "registry/dialog.tsx"
+    ],
+    "registryDependencies": [
+      "button"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "drawer",
+    "files": [
+      "registry/drawer.tsx"
+    ],
+    "registryDependencies": [
+      "dialog",
+      "sheet"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "dropdown-menu",
+    "files": [
+      "registry/dropdown-menu.tsx"
+    ],
+    "registryDependencies": [
+      "button"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "empty",
+    "files": [
+      "registry/empty.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "field",
+    "files": [
+      "registry/field.tsx"
+    ],
+    "registryDependencies": [
+      "label"
+    ],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "focus-card",
+    "files": [
+      "registry/focus-card.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "form",
+    "files": [
+      "registry/form.tsx"
+    ],
+    "registryDependencies": [
+      "button",
+      "checkbox",
+      "field",
+      "input",
+      "select",
+      "slider",
+      "switch"
+    ],
+    "dependencies": [
+      "@tanstack/react-form"
+    ]
+  },
+  {
+    "name": "input",
+    "files": [
+      "registry/input.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "input-group",
+    "files": [
+      "registry/input-group.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "input-otp",
+    "files": [
+      "registry/input-otp.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "item",
+    "files": [
+      "registry/item.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "kbd",
+    "files": [
+      "registry/kbd.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "label",
+    "files": [
+      "registry/label.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "menubar",
+    "files": [
+      "registry/menubar.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "native-select",
+    "files": [
+      "registry/native-select.tsx"
+    ],
+    "registryDependencies": [
+      "select"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "navigation-menu",
+    "files": [
+      "registry/navigation-menu.tsx"
+    ],
+    "registryDependencies": [
+      "menubar"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "options-menu",
+    "files": [
+      "registry/options-menu.tsx"
+    ],
+    "registryDependencies": [
+      "dropdown-menu"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "pagination",
+    "files": [
+      "registry/pagination.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "popover",
+    "files": [
+      "registry/popover.tsx"
+    ],
+    "registryDependencies": [
+      "dialog"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "progress",
+    "files": [
+      "registry/progress.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "radio-group",
+    "files": [
+      "registry/radio-group.tsx"
+    ],
+    "registryDependencies": [
+      "select"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "scroll-area",
+    "files": [
+      "registry/scroll-area.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "select",
+    "files": [
+      "registry/select.tsx"
+    ],
+    "registryDependencies": [
+      "dropdown-menu"
+    ],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "separator",
+    "files": [
+      "registry/separator.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "sheet",
+    "files": [
+      "registry/sheet.tsx"
+    ],
+    "registryDependencies": [
+      "dialog"
+    ],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "sidebar",
+    "files": [
+      "registry/sidebar.tsx"
+    ],
+    "registryDependencies": [
+      "item"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "skeleton",
+    "files": [
+      "registry/skeleton.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "slider",
+    "files": [
+      "registry/slider.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "spinner",
+    "files": [
+      "registry/spinner.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "lucide"
+    ]
+  },
+  {
+    "name": "switch",
+    "files": [
+      "registry/switch.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "table",
+    "files": [
+      "registry/table.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "@tanstack/react-table",
+      "lucide"
+    ]
+  },
+  {
+    "name": "tabs",
+    "files": [
+      "registry/tabs.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "textarea",
+    "files": [
+      "registry/textarea.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  },
+  {
+    "name": "toast",
+    "files": [
+      "registry/toast.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority",
+      "lucide"
+    ]
+  },
+  {
+    "name": "toggle",
+    "files": [
+      "registry/toggle.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": [
+      "class-variance-authority"
+    ]
+  },
+  {
+    "name": "toggle-group",
+    "files": [
+      "registry/toggle-group.tsx"
+    ],
+    "registryDependencies": [
+      "select",
+      "toggle"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "tooltip",
+    "files": [
+      "registry/tooltip.tsx"
+    ],
+    "registryDependencies": [
+      "button"
+    ],
+    "dependencies": []
+  },
+  {
+    "name": "typography",
+    "files": [
+      "registry/typography.tsx"
+    ],
+    "registryDependencies": [],
+    "dependencies": []
+  }
+]

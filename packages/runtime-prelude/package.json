@@ -1,0 +1,46 @@
+{
+  "name": "@prosperokit/runtime-prelude",
+  "version": "0.1.0-alpha.0",
+  "description": "Web APIs for ProsperoKit's QuickJS runtimes (timers, fetch, streams, URL, AsyncLocalStorage)",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdamGoodApp/prosperokit.git",
+    "directory": "packages/runtime-prelude"
+  },
+  "homepage": "https://github.com/AdamGoodApp/prosperokit/tree/main/packages/runtime-prelude#readme",
+  "bugs": {
+    "url": "https://github.com/AdamGoodApp/prosperokit/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./bridge": {
+      "types": "./src/bridge.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src/bridge.d.ts"
+  ],
+  "scripts": {
+    "build": "vite build --mode ui && vite build --mode server && tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "abortcontroller-polyfill": "catalog:",
+    "core-js": "catalog:",
+    "event-target-shim": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "web-streams-polyfill": "catalog:"
+  }
+}

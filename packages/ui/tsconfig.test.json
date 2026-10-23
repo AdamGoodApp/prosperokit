@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".tsbuild/test",
+    "tsBuildInfoFile": ".tsbuild/test.tsbuildinfo",
+    "emitDeclarationOnly": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "types": ["node"]
+  },
+  "include": ["tests"],
+  "references": [{ "path": "./tsconfig.lib.json" }]
+}
