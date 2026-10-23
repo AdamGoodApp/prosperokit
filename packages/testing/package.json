@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/testing",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "Vitest helpers for ProsperoKit apps: renderNative, events, mock native bridge",
   "license": "GPL-3.0-or-later",
   "repository": {
