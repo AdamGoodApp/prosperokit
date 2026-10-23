@@ -16,7 +16,7 @@
     "lint": "biome check . && pnpm --filter prosperokit-template-app lint",
     "format": "biome format --write . && pnpm --filter prosperokit-template-app format",
     "test": "vitest run",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm build && pnpm typecheck && pnpm test"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
