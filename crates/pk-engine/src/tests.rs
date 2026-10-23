@@ -1299,16 +1299,26 @@ fn a_flex_1_list_inside_flex_1_wrappers_stays_on_screen_and_scrolls_to_focus() {
         ops.push(format!("[3,7,{}]", 10 + i));
     }
     ops.extend(
-        ["[3,6,7]", "[3,5,6]", "[3,4,5]", "[3,2,3]", "[3,2,4]", "[3,2,8]", "[3,0,2]"]
-            .map(String::from),
+        [
+            "[3,6,7]", "[3,5,6]", "[3,4,5]", "[3,2,3]", "[3,2,4]", "[3,2,8]", "[3,0,2]",
+        ]
+        .map(String::from),
     );
     let mut e = engine();
     commit(&mut e, &format!("[{}]", ops.join(",")));
     tick(&mut e, 0.0);
 
     // 1080 − 2×48 padding − 96 top bar − 40 legend = 848 px for the list.
-    assert_eq!(rect(&e, 6).h, 848.0, "the list is screen-sized, not content-sized");
-    assert_eq!(rect(&e, 8).y, 1080.0 - 48.0 - 40.0, "the legend stays on screen");
+    assert_eq!(
+        rect(&e, 6).h,
+        848.0,
+        "the list is screen-sized, not content-sized"
+    );
+    assert_eq!(
+        rect(&e, 8).y,
+        1080.0 - 48.0 - 40.0,
+        "the legend stays on screen"
+    );
 
     // Focusing the last item scrolls it into view.
     assert!(e.set_focus(29));
