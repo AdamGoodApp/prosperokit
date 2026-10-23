@@ -139,7 +139,8 @@ pub struct JsHandle {
     pub inbound: crossbeam_channel::Sender<Inbound>,
     pub join: std::thread::JoinHandle<()>,
     /// Set by the runtime thread while it runs JS, and while it parks with
-    /// native calls (or server-function requests) still awaiting a reply.
+    /// native calls (or server-function requests) still awaiting a reply or
+    /// a timer due within 100 ms.
     pub(crate) busy: Arc<std::sync::atomic::AtomicBool>,
 }
 

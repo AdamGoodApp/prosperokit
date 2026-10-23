@@ -375,6 +375,33 @@ fn the_runtime_stays_busy_while_a_native_call_awaits_its_reply() {
 }
 
 #[test]
+fn an_imminent_timer_keeps_the_runtime_busy_and_a_distant_one_does_not() {
+    // Work continuing through short timers (React's scheduler, router loads)
+    // is not idle, even while the thread is parked between them.
+    let chain = "let n = 0; const tick = () => { n++; if (n === 50) __pk.log('info', 'ticking'); setTimeout(tick, 10) }; tick();";
+    let h = Harness::new(RuntimeKind::Ui, ModuleRegistry::new(), chain);
+    h.wait_log("ticking");
+    for _ in 0..1_000 {
+        assert!(h.handle.is_busy(), "idle between 10 ms timers");
+        std::thread::yield_now();
+    }
+    h.shutdown();
+
+    let distant = "setTimeout(() => {}, 5000); __pk.log('info', 'armed');";
+    let h = Harness::new(RuntimeKind::Ui, ModuleRegistry::new(), distant);
+    h.wait_log("armed");
+    let deadline = Instant::now() + Duration::from_secs(4);
+    while h.handle.is_busy() {
+        assert!(
+            Instant::now() < deadline,
+            "a 5 s timer kept the runtime busy"
+        );
+        std::thread::yield_now();
+    }
+    h.shutdown();
+}
+
+#[test]
 fn ui_events_and_prepare_reload() {
     let src = "globalThis.__PK_SEEN = __PK_INITIAL_HREF + '|' + __PK_APP_INFO.platform;
         globalThis.__pk_dispatch = (id, type, p) => __pk.log('info', 'ev ' + id + ' ' + type + ' ' + JSON.stringify(p));

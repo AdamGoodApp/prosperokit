@@ -26,6 +26,9 @@ use crate::{
 
 pub const SERVER_TIMEOUT_MS: u64 = 30_000;
 
+/// A timer due within this window keeps the runtime "busy" while parked.
+const IMMINENT_TIMER: Duration = Duration::from_millis(100);
+
 const SERVE_SHIM: &str = r#"
 globalThis.__pk_serve = function (id, url, method, headers, body) {
   Promise.resolve()
@@ -646,6 +649,14 @@ impl JsRuntime {
         }
     }
 
+    fn timer_due_soon(&self) -> bool {
+        self.sh
+            .timers
+            .borrow()
+            .next_deadline()
+            .is_some_and(|at| at <= Instant::now() + IMMINENT_TIMER)
+    }
+
     fn next_wake(&self) -> Option<Instant> {
         let t = self.sh.timers.borrow().next_deadline();
         let s = self.sh.inflight.get().map(|(_, d)| d);
@@ -657,8 +668,14 @@ impl JsRuntime {
 
     fn run_loop(&mut self, rx: Receiver<Inbound>, busy: &AtomicBool) {
         'outer: loop {
-            // Parked, but still waiting on native replies counts as busy.
-            busy.store(!self.sh.awaiting.borrow().is_empty(), Ordering::Release);
+            // Parked still counts as busy while native replies are outstanding
+            // or a timer is about to fire: React's scheduler and the router
+            // continue work through short timers, and a loaded machine can
+            // leave this thread parked between them for longer than a frame.
+            busy.store(
+                !self.sh.awaiting.borrow().is_empty() || self.timer_due_soon(),
+                Ordering::Release,
+            );
             let first = match self.next_wake() {
                 Some(at) => {
                     let wait = at.saturating_duration_since(Instant::now());
