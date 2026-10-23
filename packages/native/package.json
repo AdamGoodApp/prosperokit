@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/native",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Typed native PS5 API for ProsperoKit apps (app, notify, ime, pad, audio, fs, system, http)",
   "license": "GPL-3.0-or-later",
   "repository": {

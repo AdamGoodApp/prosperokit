@@ -1,6 +1,6 @@
 {
   "name": "@prosperokit/cli",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "ProsperoKit CLI: create, dev, build, deploy, add, assets, doctor",
   "license": "GPL-3.0-or-later",
   "repository": {
