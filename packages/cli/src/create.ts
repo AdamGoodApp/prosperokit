@@ -121,7 +121,18 @@ export async function createApp(
   if (pm === 'pnpm') {
     // pnpm fails an install while a dependency build script is undecided
     // (strictDepBuilds); core-js's postinstall only prints a funding banner.
-    await writeFile(join(dir, 'pnpm-workspace.yaml'), 'allowBuilds:\n  core-js: false\n')
+    // pnpm also holds back releases younger than a day; ProsperoKit's own
+    // packages are exempt so fixes install the day they are published.
+    await writeFile(
+      join(dir, 'pnpm-workspace.yaml'),
+      [
+        'allowBuilds:',
+        '  core-js: false',
+        'minimumReleaseAgeExclude:',
+        "  - '@prosperokit/*'",
+        '',
+      ].join('\n'),
+    )
   }
   if (opts.git !== false) {
     try {
