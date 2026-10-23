@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use pk_protocol::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use softbuffer::{Context, Surface};
 use winit::application::ApplicationHandler;
-use winit::dpi::LogicalSize;
+use winit::dpi::{LogicalSize, PhysicalSize, Size};
 use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::keyboard::{Key, NamedKey, PhysicalKey};
@@ -61,21 +61,29 @@ struct App {
 }
 
 impl App {
-    /// A logical window size that fits the display (at most 1920×1080, 16:9).
-    fn initial_size(event_loop: &ActiveEventLoop) -> LogicalSize<f64> {
+    /// The initial window size: exactly 1920×1080 *physical* pixels when that
+    /// fits the display (one frame pixel per screen pixel, so text is sharp;
+    /// on a 2× Retina display that is 960×540 points), otherwise the largest
+    /// 16:9 size that fits, reduced by averaging.
+    fn initial_size(event_loop: &ActiveEventLoop) -> Size {
         let (w, h) = (f64::from(SCREEN_WIDTH), f64::from(SCREEN_HEIGHT));
         let Some(monitor) = event_loop
             .primary_monitor()
             .or_else(|| event_loop.available_monitors().next())
         else {
-            return LogicalSize::new(w, h);
+            return LogicalSize::new(w, h).into();
         };
-        let logical = monitor.size().to_logical::<f64>(monitor.scale_factor());
+        let physical = monitor.size();
         // Leave room for the title bar, menu bar and dock.
-        let scale = (logical.width * 0.9 / w)
-            .min(logical.height * 0.8 / h)
-            .min(1.0);
-        LogicalSize::new((w * scale).round(), (h * scale).round())
+        let (room_w, room_h) = (
+            f64::from(physical.width) * 0.9,
+            f64::from(physical.height) * 0.8,
+        );
+        if w <= room_w && h <= room_h {
+            return PhysicalSize::new(SCREEN_WIDTH, SCREEN_HEIGHT).into();
+        }
+        let scale = (room_w / w).min(room_h / h);
+        PhysicalSize::new((w * scale).round() as u32, (h * scale).round() as u32).into()
     }
 
     fn blit(&mut self) {

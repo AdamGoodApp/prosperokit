@@ -1331,3 +1331,71 @@ fn a_flex_1_list_inside_flex_1_wrappers_stays_on_screen_and_scrolls_to_focus() {
         "last item at {last:?} is outside the list at {list:?}"
     );
 }
+
+/// Icons follow their parent's alignment like any other box (a Tile centres
+/// its icon both ways; a button row centres it vertically), and keep their
+/// `size` instead of stretching across the parent.
+#[test]
+fn icons_are_centred_by_their_parent_and_keep_their_size() {
+    let mut e = engine();
+    commit(
+        &mut e,
+        r#"[[1,2,"view",{"style":{"width":104,"height":104,"alignItems":"center","justifyContent":"center"}}],
+            [1,3,"icon",{"size":56}],[3,2,3],
+            [1,4,"view",{"style":{"flexDirection":"row","alignItems":"center","height":64,"width":200}}],
+            [1,5,"icon",{"size":28}],[3,4,5],
+            [1,6,"view",{"style":{"width":300}}],
+            [1,7,"icon",{"size":24}],[3,6,7],
+            [3,0,2],[3,0,4],[3,0,6]]"#,
+    );
+    tick(&mut e, 0.0);
+    let (tile, icon) = (rect(&e, 2), rect(&e, 3));
+    assert_eq!(
+        (icon.x - tile.x, icon.y - tile.y, icon.w, icon.h),
+        (24.0, 24.0, 56.0, 56.0)
+    );
+    let (row, chevron) = (rect(&e, 4), rect(&e, 5));
+    assert_eq!(
+        (chevron.x - row.x, chevron.y - row.y, chevron.w, chevron.h),
+        (0.0, 18.0, 28.0, 28.0)
+    );
+    // A stretching (default) column does not widen an icon.
+    assert_eq!((rect(&e, 7).w, rect(&e, 7).h), (24.0, 24.0));
+}
+
+/// A vertical scroll view clips its content above and below, but not at the
+/// sides: a focused row's ring sticks out of the list instead of being cut
+/// off. Rounded or explicitly `overflow: hidden` containers still clip fully.
+#[test]
+fn a_vertical_scroll_view_clips_only_vertically() {
+    let red = r##""backgroundColor":"#ff0000""##;
+    let build = |extra: &str| {
+        let mut e = engine();
+        commit(
+            &mut e,
+            &format!(
+                r#"[[1,2,"scroll",{{"style":{{"position":"absolute","left":100,"top":100,"width":400,"height":300{extra}}}}}],
+                    [1,3,"view",{{"style":{{"marginLeft":-20,"height":200,{red}}}}}],
+                    [1,4,"view",{{"style":{{"height":400,{red}}}}}],
+                    [3,2,3],[3,2,4],[3,0,2]]"#
+            ),
+        );
+        tick(&mut e, 0.0);
+        let mut f = frame();
+        e.render(&mut f);
+        f
+    };
+    let px = |f: &[u32], x: usize, y: usize| f[y * SCREEN_WIDTH as usize + x] & 0x00ff_ffff;
+    let is_red = |p: u32| p == 0x0000_00ff;
+
+    let f = build("");
+    assert!(is_red(px(&f, 90, 150)), "the row's left overhang is drawn");
+    assert!(is_red(px(&f, 300, 350)), "rows inside the list are drawn");
+    assert!(!is_red(px(&f, 300, 450)), "rows below the list are clipped");
+
+    let hidden = build(r#","overflow":"hidden""#);
+    assert!(
+        !is_red(px(&hidden, 90, 150)),
+        "overflow: hidden clips the sides"
+    );
+}

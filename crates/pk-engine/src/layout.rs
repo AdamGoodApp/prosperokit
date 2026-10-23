@@ -152,6 +152,18 @@ pub fn to_taffy(node: &Node) -> taffy::Style {
         width: dim(s.width),
         height: dim(s.height),
     };
+    // An icon is `size` × `size` unless styled otherwise. A definite size keeps
+    // it from stretching across its parent while it still follows the parent's
+    // alignment (`items-center` centres it like any other box).
+    if node.kind == NodeKind::Icon {
+        let side = Dimension::length(node.props.size);
+        if s.width.is_none() {
+            t.size.width = side;
+        }
+        if s.height.is_none() {
+            t.size.height = side;
+        }
+    }
     // Unset minimums are 0, as in React Native (Yoga), not CSS's automatic
     // "never below the content" minimum: with it, `flex-1` wrappers grow to
     // their content and a list inside them can never scroll. Items only
@@ -223,8 +235,6 @@ pub fn to_taffy(node: &Node) -> taffy::Style {
         Some(ps::AlignSelf::Baseline) => Some(AlignSelf::BASELINE),
         Some(ps::AlignSelf::Start) => Some(AlignSelf::START),
         Some(ps::AlignSelf::End) => Some(AlignSelf::END),
-        // An icon has an intrinsic size: it does not stretch across its parent.
-        _ if node.kind == NodeKind::Icon => Some(AlignSelf::FLEX_START),
         _ => None,
     };
     t.align_content = match s.align_content {

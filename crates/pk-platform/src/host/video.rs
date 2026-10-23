@@ -1,6 +1,10 @@
 //! Desktop video: a 1920×1080 shadow of the screen in softbuffer's pixel
-//! format, filled from the engine's frame one dirty tile at a time and scaled
-//! (nearest-neighbour, letterboxed) into the window surface on demand.
+//! format, filled from the engine's frame one dirty tile at a time and copied
+//! into the window surface on demand. A larger window shows the frame at a
+//! whole-number scale (sharp; black bars around it); a smaller one gets an
+//! area-averaged reduction. Stretching by a fractional factor is never done:
+//! it duplicates some pixel rows and columns but not others, which makes text
+//! look rough and soft.
 
 use std::fs::File;
 use std::io::BufWriter;
@@ -22,10 +26,60 @@ pub(crate) struct HostVideo {
     shadow: Vec<u32>,
     /// Something was presented since the last blit to a window.
     dirty: bool,
-    /// Horizontal source column for each destination column of the last blit
-    /// (cached per target size).
-    x_map: Vec<u32>,
-    x_map_key: (usize, usize),
+    /// Box-filter taps for the last reduced size (cached per target size).
+    reduce: Option<Reduce>,
+    /// Horizontally reduced rows (target width × 1080), reused across blits.
+    scratch: Vec<u32>,
+}
+
+/// Separable box-filter taps for one reduced output size.
+struct Reduce {
+    size: (usize, usize),
+    cols: Vec<Taps>,
+    rows: Vec<Taps>,
+}
+
+/// Source pixels covered by one output pixel, with weights summing to 2^16.
+struct Taps {
+    first: usize,
+    weights: Vec<u32>,
+}
+
+/// For each of `dst` output pixels, the `src` pixels it covers and how much.
+fn box_taps(src: usize, dst: usize) -> Vec<Taps> {
+    let ratio = src as f64 / dst as f64;
+    (0..dst)
+        .map(|i| {
+            let (lo, hi) = (i as f64 * ratio, (i + 1) as f64 * ratio);
+            let first = lo.floor() as usize;
+            let last = (hi.ceil() as usize).min(src);
+            let mut weights: Vec<u32> = (first..last)
+                .map(|j| {
+                    let overlap = hi.min(j as f64 + 1.0) - lo.max(j as f64);
+                    (overlap / ratio * 65536.0).round() as u32
+                })
+                .collect();
+            // Make the weights sum to exactly 2^16 so flat colours stay exact.
+            let sum: u32 = weights.iter().sum();
+            if let Some(w) = weights.iter_mut().max() {
+                *w = (*w + 65536).saturating_sub(sum);
+            }
+            Taps { first, weights }
+        })
+        .collect()
+}
+
+/// Weighted sum of `0x00RRGGBB` pixels (weights sum to 2^16).
+#[inline]
+fn mix(pixels: impl Iterator<Item = (u32, u32)>) -> u32 {
+    let (mut r, mut g, mut b) = (0u32, 0u32, 0u32);
+    for (p, w) in pixels {
+        r += (p >> 16 & 0xff) * w;
+        g += (p >> 8 & 0xff) * w;
+        b += (p & 0xff) * w;
+    }
+    let round = |c: u32| (c + 32768) >> 16;
+    round(r) << 16 | round(g) << 8 | round(b)
 }
 
 impl HostVideo {
@@ -33,8 +87,8 @@ impl HostVideo {
         HostVideo {
             shadow: vec![0; W * H],
             dirty: true,
-            x_map: Vec::new(),
-            x_map_key: (0, 0),
+            reduce: None,
+            scratch: Vec::new(),
         }
     }
 
@@ -70,8 +124,9 @@ impl HostVideo {
         self.dirty = true;
     }
 
-    /// Scales the shadow into `dst` (`dw`×`dh`, row by row): fit inside,
-    /// keep the aspect ratio, black bars, nearest-neighbour.
+    /// Draws the shadow into `dst` (`dw`×`dh`, row by row), centred with black
+    /// bars: at the largest whole-number scale that fits, or area-averaged
+    /// down to the largest 16:9 rectangle when the target is smaller.
     pub(crate) fn blit(&mut self, dst: &mut [u32], dw: usize, dh: usize) {
         if dw == 0 || dh == 0 || dst.len() < dw * dh {
             return;
@@ -80,19 +135,65 @@ impl HostVideo {
             dst[..W * H].copy_from_slice(&self.shadow);
             return;
         }
-        let (ow, oh) = fit(dw, dh);
+        let k = (dw / W).min(dh / H);
+        if k >= 1 {
+            self.blit_scaled(dst, dw, dh, k);
+        } else {
+            self.blit_reduced(dst, dw, dh);
+        }
+    }
+
+    /// Whole-number upscale: every source pixel becomes a `k`×`k` block.
+    fn blit_scaled(&self, dst: &mut [u32], dw: usize, dh: usize, k: usize) {
+        let (ow, oh) = (W * k, H * k);
         let (ox, oy) = ((dw - ow) / 2, (dh - oh) / 2);
         dst[..dw * dh].fill(0);
-        if self.x_map_key != (ow, oh) {
-            self.x_map = (0..ow).map(|x| (x * W / ow) as u32).collect();
-            self.x_map_key = (ow, oh);
-        }
-        for y in 0..oh {
-            let sy = y * H / oh;
+        for sy in 0..H {
             let src = &self.shadow[sy * W..(sy + 1) * W];
+            let top = (oy + sy * k) * dw + ox;
+            let row = &mut dst[top..top + ow];
+            for (block, p) in row.chunks_exact_mut(k).zip(src) {
+                block.fill(*p);
+            }
+            for r in 1..k {
+                dst.copy_within(top..top + ow, top + r * dw);
+            }
+        }
+    }
+
+    /// Area-averaged reduction to the largest 16:9 rectangle that fits.
+    fn blit_reduced(&mut self, dst: &mut [u32], dw: usize, dh: usize) {
+        let (ow, oh) = fit(dw, dh);
+        let (ox, oy) = ((dw - ow) / 2, (dh - oh) / 2);
+        if self.reduce.as_ref().is_none_or(|r| r.size != (ow, oh)) {
+            self.reduce = Some(Reduce {
+                size: (ow, oh),
+                cols: box_taps(W, ow),
+                rows: box_taps(H, oh),
+            });
+        }
+        let Some(reduce) = &self.reduce else { return };
+        dst[..dw * dh].fill(0);
+        self.scratch.resize(ow * H, 0);
+        for sy in 0..H {
+            let src = &self.shadow[sy * W..(sy + 1) * W];
+            for (x, t) in reduce.cols.iter().enumerate() {
+                let px = src[t.first..]
+                    .iter()
+                    .copied()
+                    .zip(t.weights.iter().copied());
+                self.scratch[sy * ow + x] = mix(px);
+            }
+        }
+        for (y, t) in reduce.rows.iter().enumerate() {
             let row = &mut dst[(oy + y) * dw + ox..(oy + y) * dw + ox + ow];
-            for (d, sx) in row.iter_mut().zip(&self.x_map) {
-                *d = src[*sx as usize];
+            for (x, d) in row.iter_mut().enumerate() {
+                let px = t
+                    .weights
+                    .iter()
+                    .enumerate()
+                    .map(|(i, w)| (self.scratch[(t.first + i) * ow + x], *w));
+                *d = mix(px);
             }
         }
     }
@@ -166,19 +267,69 @@ mod tests {
         assert_eq!(video.pixel(W - 1, H - 1), 0x00ff_0000);
     }
 
-    #[test]
-    fn blit_letterboxes_and_scales() {
+    /// A frame with distinct pixels: alternating white/black columns.
+    fn striped() -> HostVideo {
         let mut video = HostVideo::new();
-        video.present(&vec![0xffff_ffffu32; W * H], &TileSet::full());
+        let frame: Vec<u32> = (0..W * H)
+            .map(|i| if i % 2 == 0 { 0xffff_ffff } else { 0xff00_0000 })
+            .collect();
+        video.present(&frame, &TileSet::full());
+        video
+    }
+
+    #[test]
+    fn a_window_with_room_for_2x_gets_exact_2x2_blocks_centred() {
+        let mut video = striped();
+        let (dw, dh) = (W * 2 + 100, H * 2 + 40);
+        let mut dst = vec![1u32; dw * dh];
+        video.blit(&mut dst, dw, dh);
+        let (ox, oy) = (50, 20);
+        assert_eq!(dst[0], 0, "bar");
+        for (x, expect) in [(0, 0x00ff_ffff), (1, 0x00ff_ffff), (2, 0), (3, 0)] {
+            assert_eq!(dst[oy * dw + ox + x], expect, "column {x}");
+            assert_eq!(dst[(oy + 1) * dw + ox + x], expect, "row 2, column {x}");
+        }
+    }
+
+    #[test]
+    fn a_window_between_1x_and_2x_shows_the_frame_pixel_for_pixel() {
+        let mut video = striped();
+        let (dw, dh) = (2700, 1580);
+        let mut dst = vec![1u32; dw * dh];
+        video.blit(&mut dst, dw, dh);
+        let (ox, oy) = ((dw - W) / 2, (dh - H) / 2);
+        let row = &dst[oy * dw + ox..oy * dw + ox + W];
+        assert_eq!(row, &video.shadow[..W], "an unscaled copy, no stretching");
+        assert_eq!(dst[oy * dw + ox - 1], 0, "bar left of the frame");
+    }
+
+    #[test]
+    fn a_smaller_window_averages_instead_of_dropping_pixels() {
+        let mut video = striped();
         let (dw, dh) = (960, 800);
         let mut dst = vec![1u32; dw * dh];
         video.blit(&mut dst, dw, dh);
+        assert_eq!(fit(dw, dh), (960, 540));
+        let oy = (dh - 540) / 2;
+        assert_eq!(dst[0], 0, "bar");
+        // Each output pixel covers one white and one black column: mid-grey,
+        // where nearest-neighbour would show only one of them.
+        assert_eq!(dst[(oy + 10) * dw + 5], 0x0080_8080);
+        assert_eq!(dst[(dh - 1) * dw], 0, "bar");
+    }
+
+    #[test]
+    fn flat_colours_survive_reduction_exactly() {
+        let mut video = HostVideo::new();
+        video.present(&vec![0xff33_2211u32; W * H], &TileSet::full());
+        let (dw, dh) = (1351, 760);
+        let mut dst = vec![0u32; dw * dh];
+        video.blit(&mut dst, dw, dh);
         let (ow, oh) = fit(dw, dh);
-        assert_eq!((ow, oh), (960, 540));
-        let oy = (dh - oh) / 2;
-        assert_eq!(dst[0], 0); // bar
-        assert_eq!(dst[(oy + 10) * dw + 5], 0x00ff_ffff);
-        assert_eq!(dst[(dh - 1) * dw], 0); // bar
+        let (ox, oy) = ((dw - ow) / 2, (dh - oh) / 2);
+        for (x, y) in [(0, 0), (ow - 1, oh - 1), (ow / 3, oh / 2)] {
+            assert_eq!(dst[(oy + y) * dw + ox + x], 0x0011_2233, "at {x},{y}");
+        }
     }
 
     #[test]

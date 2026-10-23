@@ -713,7 +713,8 @@ impl<'a> Builder<'a> {
         if !leaf_like && !node.children.is_empty() {
             let child_clip = if node.clips() {
                 let radii = circ(clamp_radii(node.cur.border_radius.resolved(), abs.w, abs.h));
-                self.push_clip(abs, radii, xf, ctx.clip)
+                let rect = scroll_axis_clip(node, abs, &radii);
+                self.push_clip(rect, radii, xf, ctx.clip)
             } else {
                 ctx.clip
             };
@@ -1175,5 +1176,25 @@ pub fn diff(old: &[DrawCmd], new: &[DrawCmd], dirty: &mut TileSet) {
         if !matched_old[i] {
             dirty.insert_rect(&c.bbox.to_rect());
         }
+    }
+}
+
+/// How far a scroll view's clip extends across its scroll axis: far enough to
+/// reach any ancestor clip, which then bounds it.
+const CROSS_AXIS_OVERHANG: f32 = 16_384.0;
+
+/// The clip rectangle for `node`'s children. A scroll view with square corners
+/// and no explicit `overflow` clips only along its scroll axis, so content that
+/// sticks out sideways (a focused row's ring, a scaled card) is not cut off;
+/// anything else clips to its box.
+fn scroll_axis_clip(node: &crate::tree::Node, abs: Rect, radii: &Radii) -> Rect {
+    if node.kind != NodeKind::Scroll || node.cur.overflow.is_some() || !radii_is_zero(radii) {
+        return abs;
+    }
+    let o = CROSS_AXIS_OVERHANG;
+    if node.props.horizontal {
+        Rect::new(abs.x, abs.y - o, abs.w, abs.h + 2.0 * o)
+    } else {
+        Rect::new(abs.x - o, abs.y, abs.w + 2.0 * o, abs.h)
     }
 }
